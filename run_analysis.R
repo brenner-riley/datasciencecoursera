@@ -1,6 +1,7 @@
 library(dplyr)
 
 setwd("/Users/rileybrenner/Downloads/UCI HAR Dataset")
+feature_labels <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/features.txt")
 
 activity_labels <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/activity_labels.txt")
 colnames(activity_labels)<-c("Code", "Activity")
@@ -83,13 +84,17 @@ for(x in 1:30)
 {
   for(y in 1:6)
   {
+    info <- c(X, activity_labels[y,2])
     locs <- which(temp[562]==activity_labels[y,2] & temp[563] == x)
     data_features_parcip_activity_avged <- rbind(data_features_parcip_activity_avged, 
-                                                 apply(data_feature_vectors[locs,1:561], 
-                                                       2, mean))
-    nam <- paste("Participant ", x, activity_labels[y,2])
-    row_nam <- append(row_nam, nam, length(row_nam))
+                                                 append(info,apply(data_feature_vectors[locs,1:561], 
+                                                       2, mean), length(info)))
   }
 }
 row.names(data_features_parcip_activity_avged) <- row_nam
-colnames(data_features_parcip_activity_avged) <- c(1:561)
+colnames(data_features_parcip_activity_avged) <- feature_labels[2]
+
+
+
+write.table(data_features_parcip_activity_avged, file = "/Users/rileybrenner/Desktop/Test/datasciencecoursera/tidy.table.txt", row.name=FALSE )
+
