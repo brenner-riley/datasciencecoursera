@@ -1,9 +1,10 @@
 library(dplyr)
 
-setwd("/Users/rileybrenner/Downloads/UCI HAR Dataset")
+
+getwd()
 feature_labels <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/features.txt")
 
-activity_labels <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/activity_labels.txt")
+activity_labels <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/activity_labels.txt")
 colnames(activity_labels)<-c("Code", "Activity")
 
 #bax_test <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/test/Inertial Signals/body_acc_x_test.txt")
@@ -16,9 +17,9 @@ colnames(activity_labels)<-c("Code", "Activity")
 #tay_test<- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/test/Inertial Signals/total_acc_y_test.txt")
 #taz_test <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/test/Inertial Signals/total_acc_z_test.txt")
 
-stest <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/test/subject_test.txt")
-x_test <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/test/X_test.txt")
-y_text <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/test/y_test.txt")
+stest <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/test/subject_test.txt")
+x_test <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/test/X_test.txt")
+y_text <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/test/y_test.txt")
 
 #bax_train <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/train/Inertial Signals/body_acc_x_train.txt")
 #bay_train<- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/train/Inertial Signals/body_acc_y_train.txt")
@@ -30,9 +31,9 @@ y_text <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/test/y_test.
 #tay_train<- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/train/Inertial Signals/total_acc_y_train.txt")
 #taz_train <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/train/Inertial Signals/total_acc_z_train.txt")
 
-strain <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/train/subject_train.txt")
-x_train <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/train/X_train.txt")
-y_train <- read.table("/Users/rileybrenner/Downloads/UCI HAR Dataset/train/y_train.txt")
+strain <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/train/subject_train.txt")
+x_train <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/train/X_train.txt")
+y_train <- read.table("/Users/rileybrenner/Desktop/Test/datasciencecoursera/UCI HAR Dataset/train/y_train.txt")
 
 #Combinations of all the derivative files, upon further consideration, 
 # assignment only requires combination of the dataset with 561 variables.
@@ -84,7 +85,7 @@ for(x in 1:30)
 {
   for(y in 1:6)
   {
-    info <- c(X, activity_labels[y,2])
+    info <- c(x, activity_labels[y,2])
     locs <- which(temp[562]==activity_labels[y,2] & temp[563] == x)
     data_features_parcip_activity_avged <- rbind(data_features_parcip_activity_avged, 
                                                  append(info,apply(data_feature_vectors[locs,1:561], 
@@ -92,7 +93,7 @@ for(x in 1:30)
   }
 }
 row.names(data_features_parcip_activity_avged) <- row_nam
-colnames(data_features_parcip_activity_avged) <- feature_labels[2]
+colnames(data_features_parcip_activity_avged) <- append(c("Participant", "Activity"),feature_labels[2],2)
 
 
 
