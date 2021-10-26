@@ -1,0 +1,141 @@
+---
+title: "Reproducible Research Project 1"
+author: "Riley Brenner"
+date: "10/18/2021"
+output: html_document
+---
+## Intro
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+In this project we will consider the activity data set, which describes the step data related to a subject wearing an activity tracker and tracks all steps taken in a five minute interval.
+
+## Data Loading
+
+Of course to begin the project we must load in and prepare the data. The data.frame my.data was adjusted to transform the data and time data to comprehensible as date and time data. The function transform_time was developed to transform the initial interval data, which could be othe form "10" to a more consistent time format.
+
+Following the processing of the date and interval columns, the intermediary data.frames sum.date and sum.interval for later analysis puposes. sum.date describes the average number of steps based on the interval, while sum.interval averages the steps based on the relative time interval. sum.interval also adds information about whether the date is a weekend or weekday. 
+
+```{r data}
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(chron)
+
+my.data <- read.csv("/Users/rileybrenner/Downloads/activity.csv")
+
+my.data$date <- as.Date(my.data$date, format = "%Y-%m-%d")
+head(my.data)
+
+
+transform_time <- function(x){
+  temp <- c()
+  if(nchar(x)==1){
+    temp <- append(temp, paste("00:0",x,":00", sep=""), length(temp))
+  }else if(nchar(x)==2){
+    temp <- append(temp, paste("00:",x,":00", sep=""), length(temp))
+  }else if(nchar(x)==3){
+    new = strsplit(x, "")[[1]]
+    temp <- append(temp, paste("0",new[1],":",new[2],new[3],":00", sep=""), length(temp))
+  }else if(nchar(x)==4){
+    new = strsplit(x, "")[[1]]
+    temp <- append(temp, paste(new[1],new[2],":",new[3],new[4],":00", sep=""), length(temp))
+  }
+}
+
+my.data$interval <- sapply(as.character( my.data$interval), transform_time)
+
+sum.date <- unlist(tapply(my.data$steps, my.data$interval, mean, na.rm = T))
+intervals <- row.names(sum.date )
+sum.date <- data.frame(sum.date, strptime(intervals, "%H:%M"))
+
+locs <- which(weekdays(my.data$date) == "Sunday"|weekdays(my.data$date) == "Saturday")
+
+sum.interval.weekend <- tapply(my.data$steps[locs], my.data$interval[locs], mean, na.rm=T)
+sum.interval.weekday <- tapply(my.data$steps[-locs], my.data$interval[-locs], mean, na.rm = T)
+
+sum.interval <- data.frame("steps" = sum.interval.weekday, "interval" = times(row.names(sum.interval.weekday)), "weekend" = "Weekday")
+sum.interval <- rbind(data.frame("steps" = sum.interval.weekend, "interval" = times(row.names(sum.interval.weekend)), "weekend"="Weekend"), sum.interval)
+
+?times
+
+my.data$interval <- strptime(my.data$interval, "%H:%M")
+```
+
+## Mean Total Step
+
+We first wish to understand what the spread of the data looks like, which suggest the validity of using our mean and median as viable statistical information.
+
+
+```{r totalstep, echo = FALSE}
+hist(tapply(my.data$steps, my.data$date, sum), main = "Daily Recorded Steps", xlab = "Steps", breaks = 10)
+```
+
+
+The data doesn't seem overly skewed in one way or another, which suggests the mean and median won't be pulled too much in either direction. So now we calculate the mean and median.
+
+
+```{r meanmed}
+print(paste("Mean:", mean(tapply(my.data$steps, my.data$date, sum), na.rm=T), ", Median:",
+median(tapply(my.data$steps, my.data$date, sum), na.rm = T)))
+```
+
+The mean was found to be 10,766 step and the median was 10,765 steps.
+
+##Average Daily Activity Pattern
+
+To visualize the Average Daily Activty pattern we will be using the sum.data dataframe. As a reminder the sum.data dataframe describes the average number of steps based on the interval and was created during the initial data processing step.
+
+We now plot it as a time series. Visually this allows us to see when the most active time period may be, supporting any calculation we might make.
+
+```{r avgnum}
+
+plot(x=sum.date$strptime.intervals....H..M.., y=sum.date$sum.date, type="l", xlab = "Time (24 hr clock)", ylab = "Average Steps in Interval")
+
+```
+
+
+
+We can see there is a spike early in the day, so now we will compute the actual highest activity interval.
+
+
+```{r maxavgsteps}
+print(paste( "Most Active Average Interval:",rownames(sum.date[which.max(sum.date$sum.date),])))
+```
+
+Hence, on average 8:35 to 8:40 is the subjects most active hour.
+
+## Dealing with Missing Data 
+
+We next wish to consider, or reconsider the data, by addressing the NA values. These values may be associated with bad connectivity between the tracker and the computation device the data was being uploaded to, or any periods in which the subject was not wearing the tracker. We will replace these NA values with a 0, to assist in computation.
+
+```{r imput}
+locs <- which(is.na(my.data$steps))
+print(length(locs))
+my.data$steps[locs]<-0
+```
+
+Now we will reconsider the first histogram, to observe how addressing NA values might improve our analysis.
+
+```{r histmiss, echo=FALSE}
+hist(tapply(my.data$steps, my.data$date, sum), main = "Daily Recorded Steps", xlab = "Steps", breaks = 10)
+```
+
+## Weekday vs Weekend Activity
+
+Now lets look at the data, seperated by weekend and weekday, to see if there are signifigantly different trends.
+
+```{r timeseries, echo=FALSE}
+
+Sys.setenv(TZ='GMT')
+ggplot(data = sum.interval, aes(x=interval, y=steps)) +
+  geom_line(color= "slateblue")+
+  labs(title = "Average Interval Steps",
+       subtitle = "Weekday vs Weekend",
+       y = "Average Steps", x = "Time") + 
+  facet_wrap(~ weekend)+
+  scale_x_chron(format = "%H:%M")
+
+```
+
+
